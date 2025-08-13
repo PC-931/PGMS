@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(TENANT)
+  firstName String
+  lastName  String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  rooms              Room[]
+  payments          Payment[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@map("users")
+}
+
+model Room {
+  id        String     @id @default(uuid())
+  number    String     @unique
+  type      String
+  rent      Float
+  deposit   Float
+  status    RoomStatus @default(AVAILABLE)
+  floor     Int
+  amenities String[]
+  tenantId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  tenant             User?                @relation(fields: [tenantId], references: [id])
+  payments          Payment[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@map("rooms")
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  amount    Float
+  dueDate   DateTime
+  paidDate  DateTime?
+  status    PaymentStatus @default(PENDING)
+  type      PaymentType
+  tenantId  String
+  roomId    String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Relations
+  tenant User @relation(fields: [tenantId], references: [id])
+  room   Room @relation(fields: [roomId], references: [id])
+
+  @@map("payments")
+}
+
+model MaintenanceRequest {
+  id          String            @id @default(uuid())
+  title       String
+  description String
+  status      MaintenanceStatus @default(PENDING)
+  priority    Priority          @default(MEDIUM)
+  tenantId    String
+  roomId      String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  tenant User @relation(fields: [tenantId], references: [id])
+  room   Room @relation(fields: [roomId], references: [id])
+
+  @@map("maintenance_requests")
+}
+
+enum Role {
+  ADMIN
+  TENANT
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum PaymentType {
+  RENT
+  DEPOSIT
+  MAINTENANCE
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
