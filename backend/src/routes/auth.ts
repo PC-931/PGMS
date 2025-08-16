@@ -3,7 +3,8 @@ import { loginSchema } from '../lib/validation';
 import { comparePassword } from '../lib/bcrypt';
 import { generateToken } from '../lib/jwt';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { db } from '../services/mockDatabase';
+//import { db } from '../services/database';
+import { userService } from '../services/userService';
 
 export const authRouter = Router();
 
@@ -12,7 +13,7 @@ authRouter.post('/login', async (req, res, next) => {
   try {
     const { email, password, rememberMe } = loginSchema.parse(req.body);
 
-    const user = await db.findUserByEmail(email);
+    const user = await userService.findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -62,7 +63,7 @@ authRouter.post('/logout', (req, res) => {
 // Get current user
 authRouter.get('/me', authenticate, async (req: AuthRequest, res, next) => {
   try {
-    const user = await db.findUserById(req.user!.userId);
+    const user = await userService.findUserById(req.user!.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

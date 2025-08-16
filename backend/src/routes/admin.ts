@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { createRoomSchema, createUserSchema } from '../lib/validation';
 import { hashPassword } from '../lib/bcrypt';
-import { db } from '../services/mockDatabase';
+//import { db } from '../services/database';
+import { dashboardService } from '../services/dashboardService';
+import { roomService } from '../services/roomService';
+import { userService } from '../services/userService';
+import { maintenanceService } from '../services/maintenanceService';
 
 export const adminRouter = Router();
 
@@ -13,7 +17,7 @@ adminRouter.use(requireRole(['ADMIN']));
 // Dashboard stats
 adminRouter.get('/dashboard/stats', async (req, res, next) => {
   try {
-    const stats = await db.getDashboardStats();
+    const stats = await dashboardService.getAdminStats();
     res.json(stats);
   } catch (error) {
     next(error);
@@ -54,7 +58,8 @@ adminRouter.get('/dashboard/activity', async (req, res, next) => {
 // Room management
 adminRouter.get('/rooms', async (req, res, next) => {
   try {
-    const rooms = await db.getAllRooms();
+    //const rooms = await db.getAllRooms();
+    const rooms = await roomService.getAllRooms();
     res.json(rooms);
   } catch (error) {
     next(error);
@@ -64,9 +69,9 @@ adminRouter.get('/rooms', async (req, res, next) => {
 adminRouter.post('/rooms', async (req, res, next) => {
   try {
     const roomData = createRoomSchema.parse(req.body);
-    const room = await db.createRoom({
+    const room = await roomService.createRoom({
       ...roomData,
-      status: 'AVAILABLE',
+      //status: 'AVAILABLE',
       amenities: roomData.amenities || []
     });
     res.status(201).json(room);
@@ -77,7 +82,8 @@ adminRouter.post('/rooms', async (req, res, next) => {
 
 adminRouter.get('/rooms/:id', async (req, res, next) => {
   try {
-    const room = await db.findRoomById(req.params.id);
+    //const room = await db.findRoomById(req.params.id);
+    const room = await roomService.findRoomById(req.params.id);
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
     }
@@ -90,7 +96,8 @@ adminRouter.get('/rooms/:id', async (req, res, next) => {
 // Tenant management
 adminRouter.get('/tenants', async (req, res, next) => {
   try {
-    const users = await db.getAllRooms(); // This should be updated to get actual tenant data
+    //const users = await db.getAllRooms(); // This should be updated to get actual tenant data
+    const users = await userService.getAllTenants();
     res.json(users);
   } catch (error) {
     next(error);
@@ -101,8 +108,8 @@ adminRouter.post('/tenants', async (req, res, next) => {
   try {
     const userData = createUserSchema.parse(req.body);
     const hashedPassword = await hashPassword(userData.password);
-    
-    const user = await db.createUser({
+
+    const user = await userService.createUser({
       ...userData,
       password: hashedPassword,
       role: 'TENANT'
@@ -119,7 +126,8 @@ adminRouter.post('/tenants', async (req, res, next) => {
 // Payment management
 adminRouter.get('/payments', async (req, res, next) => {
   try {
-    const payments = await db.getAllPayments();
+    //const payments = await db.getAllPayments();
+    const payments = await userService.getAllTenants();
     res.json(payments);
   } catch (error) {
     next(error);
@@ -129,7 +137,8 @@ adminRouter.get('/payments', async (req, res, next) => {
 // Maintenance management
 adminRouter.get('/maintenance', async (req, res, next) => {
   try {
-    const requests = await db.getAllMaintenance();
+    //const requests = await db.getAllMaintenance();
+    const requests = await maintenanceService.getAllMaintenance();
     res.json(requests);
   } catch (error) {
     next(error);
@@ -139,7 +148,8 @@ adminRouter.get('/maintenance', async (req, res, next) => {
 adminRouter.patch('/maintenance/:id', async (req, res, next) => {
   try {
     // Implementation would update maintenance request status
-    res.json({ message: 'Maintenance request updated' });
+    const requests = await maintenanceService.getMaintenanceById(req.params.id);
+    res.json(requests);
   } catch (error) {
     next(error);
   }

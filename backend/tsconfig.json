@@ -1,15 +1,29 @@
 {
   "compilerOptions": {
+    /* Output settings */
     "target": "ES2020",
     "module": "commonjs",
-    "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
+
+    /* Module resolution */
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Type checking */
+    "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+
+    /* Node global types */
+    "types": ["node"],
+
+    /* If using decorators in future */
+    "experimentalDecorators": true,
+
+
+    /// pre defined
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -19,21 +33,8 @@
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "noFallthroughCasesInSwitch": true,   
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "prisma/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

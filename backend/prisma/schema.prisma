@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,15 +13,15 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(TENANT)
-  firstName String
-  lastName  String
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
   phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  rooms              Room[]
-  payments          Payment[]
+  rooms               Room[]
+  payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 
   @@map("users")
@@ -30,18 +31,18 @@ model Room {
   id        String     @id @default(uuid())
   number    String     @unique
   type      String
-  rent      Float
-  deposit   Float
+  rent      Decimal    @db.Decimal(10, 2)
+  deposit   Decimal    @db.Decimal(10, 2)
   status    RoomStatus @default(AVAILABLE)
   floor     Int
   amenities String[]
-  tenantId  String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  tenantId  String?    @map("tenant_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  tenant             User?                @relation(fields: [tenantId], references: [id])
-  payments          Payment[]
+  tenant              User?                @relation(fields: [tenantId], references: [id])
+  payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 
   @@map("rooms")
@@ -49,19 +50,19 @@ model Room {
 
 model Payment {
   id        String        @id @default(uuid())
-  amount    Float
-  dueDate   DateTime
-  paidDate  DateTime?
+  amount    Decimal       @db.Decimal(10, 2)
+  dueDate   DateTime      @map("due_date")
+  paidDate  DateTime?     @map("paid_date")
   status    PaymentStatus @default(PENDING)
   type      PaymentType
-  tenantId  String
-  roomId    String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  tenantId  String        @map("tenant_id")
+  roomId    String        @map("room_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
 
   // Relations
-  tenant User @relation(fields: [tenantId], references: [id])
-  room   Room @relation(fields: [roomId], references: [id])
+  tenant User @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@map("payments")
 }
@@ -72,14 +73,14 @@ model MaintenanceRequest {
   description String
   status      MaintenanceStatus @default(PENDING)
   priority    Priority          @default(MEDIUM)
-  tenantId    String
-  roomId      String
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  tenantId    String            @map("tenant_id")
+  roomId      String            @map("room_id")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  tenant User @relation(fields: [tenantId], references: [id])
-  room   Room @relation(fields: [roomId], references: [id])
+  tenant User @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@map("maintenance_requests")
 }
