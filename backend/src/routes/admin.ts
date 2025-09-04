@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { createRoomSchema, createUserSchema } from '../lib/validation';
 import { hashPassword } from '../lib/bcrypt';
-//import { db } from '../services/database';
 import { dashboardService } from '../services/dashboardService';
 import { roomService } from '../services/roomService';
 import { userService } from '../services/userService';
@@ -58,7 +57,6 @@ adminRouter.get('/dashboard/activity', async (req, res, next) => {
 // Room management
 adminRouter.get('/rooms', async (req, res, next) => {
   try {
-    //const rooms = await db.getAllRooms();
     const rooms = await roomService.getAllRooms();
     res.json(rooms);
   } catch (error) {
@@ -82,7 +80,6 @@ adminRouter.post('/rooms', async (req, res, next) => {
 
 adminRouter.get('/rooms/:id', async (req, res, next) => {
   try {
-    //const room = await db.findRoomById(req.params.id);
     const room = await roomService.findRoomById(req.params.id);
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
@@ -96,7 +93,6 @@ adminRouter.get('/rooms/:id', async (req, res, next) => {
 // Tenant management
 adminRouter.get('/tenants', async (req, res, next) => {
   try {
-    //const users = await db.getAllRooms(); // This should be updated to get actual tenant data
     const users = await userService.getAllTenants();
     res.json(users);
   } catch (error) {
