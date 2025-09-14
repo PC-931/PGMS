@@ -118,7 +118,7 @@ const LoginPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
               >
                 Forgot password?
               </Link>
-            </div>
+            </div> */}
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
@@ -156,7 +156,7 @@ const LoginPage: React.FC = () => {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
+            {/* <div className="text-center text-sm text-gray-600">
               Don't have an account?{' '}
               <Link
                 to="/register"
@@ -164,7 +164,7 @@ const LoginPage: React.FC = () => {
               >
                 Sign up
               </Link>
-            </div>
+            </div> */}
 
             {/* Demo credentials */}
             <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600">

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge'
 import { DashboardStats } from '../../types'
 import { Building, Users, DollarSign, AlertCircle } from 'lucide-react'
+import { roomService } from '../../services/roomService';
+import { adminService } from '../../services/adminService';
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -12,20 +14,9 @@ const AdminDashboard: React.FC = () => {
     // Mock data fetch
     const fetchStats = async () => {
       setLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockStats: DashboardStats = {
-        totalRooms: 12,
-        occupiedRooms: 8,
-        availableRooms: 4,
-        totalTenants: 15,
-        activeTenants: 13,
-        totalRevenue: 48000,
-        pendingRent: 6000,
-        maintenanceRooms: 1
-      }
-      
-      setStats(mockStats)
+      const data = await adminService.getDashboardStats();
+      setStats(data);
+
       setLoading(false)
     }
 
@@ -99,11 +90,11 @@ const AdminDashboard: React.FC = () => {
               </div>
               <Users className="h-8 w-8 text-green-600" />
             </div>
-            <div className="mt-2 flex items-center text-sm">
+            {/* <div className="mt-2 flex items-center text-sm">
               <span className="text-green-600">
                 {stats.activeTenants} active
               </span>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
@@ -118,13 +109,13 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="mt-2 flex items-center text-sm">
               <span className="text-red-600">
-                ₹{stats.pendingRent.toLocaleString()} pending
+                ₹{stats.pendingPayments.toLocaleString()} pending
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -139,7 +130,7 @@ const AdminDashboard: React.FC = () => {
               </span>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Recent Activities */}

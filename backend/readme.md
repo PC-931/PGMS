@@ -53,11 +53,12 @@ FRONTEND_URL=http://localhost:3000
 bash# Development mode
 npm run dev
 
-# Production build
-npm run build
-npm start
-📡 API Endpoints
-Authentication Routes (/api/auth)
+## Production build
+- npm run build
+- npm start
+
+## 📡 API Endpoints
+- Authentication Routes (/api/auth)
 MethodEndpointDescriptionAccessPOST/loginUser loginPublicPOST/logoutUser logoutPublicGET/meGet current userAuthenticatedGET/verifyVerify tokenAuthenticated
 Admin Routes (/api/admin)
 MethodEndpointDescriptionAccessGET/dashboard/statsDashboard statisticsAdminGET/dashboard/activityRecent activityAdminGET/roomsGet all roomsAdminPOST/roomsCreate new roomAdminGET/rooms/:idGet room by IDAdminGET/tenantsGet all tenantsAdminPOST/tenantsCreate new tenantAdminGET/paymentsGet all paymentsAdminGET/maintenanceGet all maintenance requestsAdminPATCH/maintenance/:idUpdate maintenance requestAdmin

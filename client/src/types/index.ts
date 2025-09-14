@@ -33,7 +33,7 @@ export interface Room {
   type: 'Single' | 'Double' | 'Triple' | 'Four'
   capacity: number
   occupancy: number
-  status: 'Available' | 'Occupied' | 'Maintenance'
+  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTAINANCE'
   rent: number
   createdAt: string
   updatedAt: string
@@ -46,8 +46,8 @@ export interface Tenant {
   phone: string
   roomId: string | null
   room?: Room
-  status: 'Active' | 'Inactive'
-  joinedAt: string
+  // status: 'Active' | 'Inactive'
+  // joinedAt: string
   createdAt: string
   updatedAt: string
 }
@@ -71,10 +71,12 @@ export interface DashboardStats {
   occupiedRooms: number
   availableRooms: number
   totalTenants: number
-  activeTenants: number
+  //activeTenants: number
   totalRevenue: number
-  pendingRent: number
-  maintenanceRooms: number
+  // pendingRent: number
+  pendingPayments: number
+  // maintenanceRooms: number
+  occupancyRate: number
 }
 
 export interface ApiResponse<T> {
