@@ -103,3 +103,61 @@ export interface SearchFilters {
   page?: number
   limit?: number
 }
+
+export interface ReportConfig {
+  type: 'monthly_revenue' | 'occupancy' | 'tenant_list' | 'maintenance' | 'payment_status';
+  period: 'current_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'current_year' | 'custom';
+  format: 'pdf' | 'excel' | 'csv';
+  includeDetails?: boolean;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ReportData {
+  id: string;
+  type: string;
+  period: string;
+  generatedAt: string;
+  filePath: string;
+  fileName: string;
+  format: string;
+}
+
+export interface ReportConfig {
+  type: 'monthly_revenue' | 'occupancy' | 'tenant_list' | 'maintenance' | 'payment_status';
+  period: 'current_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'current_year' | 'custom';
+  format: 'pdf' | 'excel' | 'csv';
+  includeDetails?: boolean;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ReportData {
+  id: string;
+  type: string;
+  period: string;
+  generatedAt: string;
+  filePath: string;
+  fileName: string;
+  format: string;
+}
+
+export interface CreateRoomData {
+  number: string;
+  type: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR';
+  capacity: number;
+  rent: number;
+  description?: string;
+  amenities: string[];
+}
+
+export interface CreateTenantData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  roomId: string;
+  emergencyContact?: string;
+  address?: string;
+}

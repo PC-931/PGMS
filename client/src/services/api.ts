@@ -1,9 +1,7 @@
-// services/api.js
+// services/api.ts
 import axios from 'axios';
-import { User, RegisterData } from '../types';
+import { tokenService } from './tokenService';
 
-
-//const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 const API_BASE_URL = 'http://localhost:3001/api';
 
 const api = axios.create({
@@ -15,11 +13,13 @@ const api = axios.create({
 
 // Add token to requests if authenticated
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
+  const token = tokenService.getToken();
+  if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 export default api;

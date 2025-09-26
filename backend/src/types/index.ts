@@ -54,3 +54,22 @@ export interface JwtPayload {
   email: string;
   role: 'ADMIN' | 'TENANT';
 }
+
+export interface ReportConfig {
+  type: 'monthly_revenue' | 'occupancy' | 'tenant_list' | 'maintenance' | 'payment_status';
+  period: 'current_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'current_year' | 'custom';
+  format: 'pdf' | 'excel' | 'csv';
+  includeDetails?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface ReportData {
+  id: string;
+  type: string;
+  period: string;
+  generatedAt: Date;
+  filePath: string;
+  fileName: string;
+  format: string;
+}

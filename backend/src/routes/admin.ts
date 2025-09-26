@@ -150,3 +150,34 @@ adminRouter.patch('/maintenance/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+adminRouter.get('/available-rooms', async (req, res, next) => {
+  try {
+    const rooms = await roomService.getAllRooms();
+    const availableRooms = rooms.filter(room => room.status === 'AVAILABLE');
+    res.json(availableRooms);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update room when tenant is assigned
+adminRouter.patch('/rooms/:id/assign-tenant', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { tenantId } = req.body;
+    
+    const updatedRoom = await roomService.updateRoom(id, {
+      status: 'OCCUPIED',
+      tenantId: tenantId
+    });
+    
+    if (!updatedRoom) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    return res.json(updatedRoom);
+  } catch (error) {
+    return next(error);
+  }
+});

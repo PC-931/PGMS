@@ -28,6 +28,12 @@ class RoomService {
         const response = await api.delete(`${this.baseURL}/${id}`);
         return response.data;
     }
+
+    async getAvailableRooms(): Promise<Room[]> {
+        const response = await api.get(`${this.baseURL}/available`);
+        return response.data;
+    }
+
 }
 
 export const roomService = new RoomService();

@@ -5,23 +5,33 @@ import { DashboardStats } from '../../types'
 import { Building, Users, DollarSign, AlertCircle } from 'lucide-react'
 import { roomService } from '../../services/roomService';
 import { adminService } from '../../services/adminService';
+import QuickActions from '../../components/admin/QuickActions'; // Import the new component
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data fetch
-    const fetchStats = async () => {
-      setLoading(true)
-      const data = await adminService.getDashboardStats();
-      setStats(data);
-
-      setLoading(false)
-    }
-
     fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    setLoading(true)
+    try {
+      const data = await adminService.getDashboardStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      // You might want to show an error message to the user
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDataUpdate = () => {
+    // Refresh dashboard data when a new room/tenant is added
+    fetchStats();
+  };
 
   const recentActivities = [
     { id: 1, type: 'payment', message: 'John Doe paid rent for July 2025', time: '2 hours ago' },
@@ -90,11 +100,11 @@ const AdminDashboard: React.FC = () => {
               </div>
               <Users className="h-8 w-8 text-green-600" />
             </div>
-            {/* <div className="mt-2 flex items-center text-sm">
-              <span className="text-green-600">
-                {stats.activeTenants} active
+            <div className="mt-2 flex items-center text-sm">
+              <span className="text-blue-600">
+                {Math.round(stats.occupancyRate)}% occupancy
               </span>
-            </div> */}
+            </div>
           </CardContent>
         </Card>
 
@@ -115,25 +125,25 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* <Card>
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Maintenance</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.maintenanceRooms}</p>
+                <p className="text-sm font-medium text-gray-600">Occupancy Rate</p>
+                <p className="text-2xl font-bold text-gray-900">{Math.round(stats.occupancyRate)}%</p>
               </div>
               <AlertCircle className="h-8 w-8 text-orange-600" />
             </div>
             <div className="mt-2 flex items-center text-sm">
-              <span className="text-orange-600">
-                Rooms need attention
+              <span className={stats.occupancyRate > 80 ? "text-green-600" : "text-orange-600"}>
+                {stats.occupancyRate > 80 ? "Excellent" : "Needs improvement"}
               </span>
             </div>
           </CardContent>
-        </Card> */}
+        </Card>
       </div>
 
-      {/* Recent Activities */}
+      {/* Recent Activities and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -160,27 +170,8 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <div className="font-medium text-gray-900">Add New Room</div>
-                <div className="text-sm text-gray-500">Create a new room listing</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <div className="font-medium text-gray-900">Register Tenant</div>
-                <div className="text-sm text-gray-500">Add a new tenant to the system</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <div className="font-medium text-gray-900">Generate Report</div>
-                <div className="text-sm text-gray-500">Create monthly revenue report</div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Updated Quick Actions with the new component */}
+        <QuickActions onDataUpdate={handleDataUpdate} />
       </div>
     </div>
   )
