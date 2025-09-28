@@ -78,6 +78,37 @@ adminRouter.post('/rooms', async (req, res, next) => {
   }
 });
 
+adminRouter.put('/rooms/:id', async (req, res, next) => {
+  try {
+    // validate incoming body against schema
+    const roomData = createRoomSchema.partial().parse(req.body); // ✅ partial for update
+
+    const { id } = req.params;
+
+    const room = await roomService.updateRoom(id, {
+      ...roomData,
+      // status: roomData.status ?? 'AVAILABLE',
+      // amenities: roomData.amenities ?? []
+    });
+
+    res.status(200).json(room); // ✅ use 200 for update
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.delete('/rooms/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    await roomService.deleteRoom(id);
+
+    res.status(204).send(); // ✅ 204 No Content (standard for delete)
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminRouter.get('/rooms/:id', async (req, res, next) => {
   try {
     const room = await roomService.findRoomById(req.params.id);
@@ -89,6 +120,22 @@ adminRouter.get('/rooms/:id', async (req, res, next) => {
     return next(error);
   }
 });
+
+adminRouter.get('/rooms/available', async (req, res, next) => {
+  try {
+    const room = await roomService.getAllRooms();
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }else{
+      const availableRooms = room.filter(r => r.status === 'AVAILABLE');
+      return res.json(availableRooms);
+    }
+    return res.json(room);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 
 // Tenant management
 adminRouter.get('/tenants', async (req, res, next) => {

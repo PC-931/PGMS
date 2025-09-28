@@ -7,6 +7,8 @@ import LoginPage from './pages/auth/LoginPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import TenantDashboardPage from './pages/tenant/TenantDashboard'
 import './index.css'
+import RoomManagement from './components/RoomManagement'
+import TenantManagement from './components/TenantManagement'
 
 // Public routes that don't need authentication
 const PublicRoutes: React.FC = () => {
@@ -22,14 +24,31 @@ const PublicRoutes: React.FC = () => {
 }
 
 // Admin routes
+// const AdminRoutes: React.FC = () => {
+//   return (
+//     <DashboardLayout>
+//       <Routes>
+//         <Route path="/admin" element={<AdminDashboard />} />
+//         <Route path="/admin/rooms" element={<RoomManagement />} />
+//         <Route path="/admin/tenants" element={<TenantManagement />} />
+//         <Route path="/admin/rent" element={<div>Rent Management (Coming Soon)</div>} />
+//         <Route path="/admin/settings" element={<div>Settings (Coming Soon)</div>} />
+//         <Route path="*" element={<Navigate to="/admin" replace />} />
+//       </Routes>
+//     </DashboardLayout>
+//   )
+// }
 const AdminRoutes: React.FC = () => {
   return (
     <DashboardLayout>
       <Routes>
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/rooms" element={<div>Room Management (Coming Soon)</div>} />
-        <Route path="/admin/tenants" element={<div>Tenant Management (Coming Soon)</div>} />
-        <Route path="/admin/rent" element={<div>Rent Management (Coming Soon)</div>} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/rooms" element={<RoomManagement />} />
+        <Route path="/admin/tenants" element={<TenantManagement />} />
+        <Route path="/admin/payments" element={<div>Payment Management (Coming Soon)</div>} />
+        <Route path="/admin/maintenance" element={<div>Maintenance Management (Coming Soon)</div>} />
+        <Route path="/admin/reports" element={<div>Reports (Coming Soon)</div>} />
         <Route path="/admin/settings" element={<div>Settings (Coming Soon)</div>} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
@@ -38,13 +57,27 @@ const AdminRoutes: React.FC = () => {
 }
 
 // Tenant routes
+// const TenantRoutes: React.FC = () => {
+//   return (
+//     <DashboardLayout>
+//       <Routes>
+//         <Route path="/dashboard" element={<TenantDashboardPage />} />
+//         <Route path="/dashboard/room" element={<div>My Room (Coming Soon)</div>} />
+//         <Route path="/dashboard/rent" element={<div>Rent History (Coming Soon)</div>} />
+//         <Route path="/dashboard/profile" element={<div>Profile (Coming Soon)</div>} />
+//         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+//       </Routes>
+//     </DashboardLayout>
+//   )
+// }
 const TenantRoutes: React.FC = () => {
   return (
     <DashboardLayout>
       <Routes>
         <Route path="/dashboard" element={<TenantDashboardPage />} />
         <Route path="/dashboard/room" element={<div>My Room (Coming Soon)</div>} />
-        <Route path="/dashboard/rent" element={<div>Rent History (Coming Soon)</div>} />
+        <Route path="/dashboard/payments" element={<div>Payment History (Coming Soon)</div>} />
+        <Route path="/dashboard/maintenance" element={<div>Maintenance Requests (Coming Soon)</div>} />
         <Route path="/dashboard/profile" element={<div>Profile (Coming Soon)</div>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

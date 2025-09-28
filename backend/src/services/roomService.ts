@@ -90,6 +90,12 @@ export class RoomService {
     });
   }
 
+  async deleteRoom(id: string) {
+    return prisma.room.delete({
+      where: { id },
+    });
+  }
+
   async assignTenant(roomId: string, tenantId: string) {
     return prisma.room.update({
       where: { id: roomId },
