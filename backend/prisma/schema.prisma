@@ -19,8 +19,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  rooms               Room[]
+  // Relations - Many-to-many with Room
+  rooms               Room[]               @relation("RoomTenants")
   payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 
@@ -30,18 +30,17 @@ model User {
 model Room {
   id        String     @id @default(uuid())
   number    String     @unique
-  type      String
+  type      String     // SINGLE, DOUBLE, TRIPLE, FOUR
   rent      Decimal    @db.Decimal(10, 2)
   deposit   Decimal    @db.Decimal(10, 2)
   status    RoomStatus @default(AVAILABLE)
   floor     Int
   amenities String[]
-  tenantId  String?    @map("tenant_id")
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
-  // Relations
-  tenant              User?                @relation(fields: [tenantId], references: [id])
+  // Relations - Many-to-many with User
+  tenants             User[]               @relation("RoomTenants")
   payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 

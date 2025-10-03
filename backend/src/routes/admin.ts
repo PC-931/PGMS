@@ -14,10 +14,26 @@ adminRouter.use(authenticate);
 adminRouter.use(requireRole(['ADMIN']));
 
 // Dashboard stats
+// adminRouter.get('/dashboard/stats', async (req, res, next) => {
+//   try {
+//     const stats = await dashboardService.getAdminStats();
+//     res.json(stats);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+// Dashboard stats with occupancy information
 adminRouter.get('/dashboard/stats', async (req, res, next) => {
   try {
-    const stats = await dashboardService.getAdminStats();
-    res.json(stats);
+    const [dashboardStats, occupancyStats] = await Promise.all([
+      dashboardService.getAdminStats(),
+      roomService.getRoomOccupancyStats()
+    ]);
+
+    res.json({
+      ...dashboardStats,
+      occupancy: occupancyStats
+    });
   } catch (error) {
     next(error);
   }
@@ -78,20 +94,31 @@ adminRouter.post('/rooms', async (req, res, next) => {
   }
 });
 
+// adminRouter.put('/rooms/:id', async (req, res, next) => {
+//   try {
+//     // validate incoming body against schema
+//     const roomData = createRoomSchema.partial().parse(req.body); // ✅ partial for update
+
+//     const { id } = req.params;
+
+//     const room = await roomService.updateRoom(id, {
+//       ...roomData,
+//       // status: roomData.status ?? 'AVAILABLE',
+//       // amenities: roomData.amenities ?? []
+//     });
+
+//     res.status(200).json(room); // ✅ use 200 for update
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 adminRouter.put('/rooms/:id', async (req, res, next) => {
   try {
-    // validate incoming body against schema
-    const roomData = createRoomSchema.partial().parse(req.body); // ✅ partial for update
-
+    const roomData = createRoomSchema.partial().parse(req.body);
     const { id } = req.params;
 
-    const room = await roomService.updateRoom(id, {
-      ...roomData,
-      // status: roomData.status ?? 'AVAILABLE',
-      // amenities: roomData.amenities ?? []
-    });
-
-    res.status(200).json(room); // ✅ use 200 for update
+    const room = await roomService.updateRoom(id, roomData);
+    res.status(200).json(room);
   } catch (error) {
     next(error);
   }
@@ -121,21 +148,74 @@ adminRouter.get('/rooms/:id', async (req, res, next) => {
   }
 });
 
+// adminRouter.get('/rooms/available', async (req, res, next) => {
+//   try {
+//     const room = await roomService.getAllRooms();
+//     if (!room) {
+//       return res.status(404).json({ error: 'Room not found' });
+//     }else{
+//       const availableRooms = room.filter(r => r.status === 'AVAILABLE');
+//       return res.json(availableRooms);
+//     }
+//     return res.json(room);
+//   } catch (error) {
+//     return next(error);
+//   }
+// });
+// Get available rooms (with available spots)
 adminRouter.get('/rooms/available', async (req, res, next) => {
   try {
-    const room = await roomService.getAllRooms();
-    if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
-    }else{
-      const availableRooms = room.filter(r => r.status === 'AVAILABLE');
-      return res.json(availableRooms);
-    }
-    return res.json(room);
+    const availableRooms = await roomService.getAvailableRooms();
+    return res.json(availableRooms);
   } catch (error) {
     return next(error);
   }
 });
 
+// Assign tenant to room
+adminRouter.post('/rooms/:roomId/assign-tenant', async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const { tenantId } = req.body;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+
+    const updatedRoom = await roomService.assignTenant(roomId, tenantId);
+    return res.json({
+      message: 'Tenant assigned successfully',
+      room: updatedRoom
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Release tenant from room
+adminRouter.delete('/rooms/:roomId/tenants/:tenantId', async (req, res, next) => {
+  try {
+    const { roomId, tenantId } = req.params;
+
+    const updatedRoom = await roomService.releaseTenant(roomId, tenantId);
+    return res.json({
+      message: 'Tenant released successfully',
+      room: updatedRoom
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Get room occupancy statistics
+adminRouter.get('/rooms/stats/occupancy', async (req, res, next) => {
+  try {
+    const stats = await roomService.getRoomOccupancyStats();
+    return res.json(stats);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 // Tenant management
 adminRouter.get('/tenants', async (req, res, next) => {
@@ -166,10 +246,19 @@ adminRouter.post('/tenants', async (req, res, next) => {
   }
 });
 
+// Get unassigned tenants (for room assignment)
+adminRouter.get('/tenants/unassigned', async (req, res, next) => {
+  try {
+    const unassignedTenants = await userService.getUnassignedTenants();
+    res.json(unassignedTenants);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Payment management
 adminRouter.get('/payments', async (req, res, next) => {
   try {
-    //const payments = await db.getAllPayments();
     const payments = await userService.getAllTenants();
     res.json(payments);
   } catch (error) {
@@ -180,7 +269,6 @@ adminRouter.get('/payments', async (req, res, next) => {
 // Maintenance management
 adminRouter.get('/maintenance', async (req, res, next) => {
   try {
-    //const requests = await db.getAllMaintenance();
     const requests = await maintenanceService.getAllMaintenance();
     res.json(requests);
   } catch (error) {
@@ -198,33 +286,13 @@ adminRouter.patch('/maintenance/:id', async (req, res, next) => {
   }
 });
 
-adminRouter.get('/available-rooms', async (req, res, next) => {
-  try {
-    const rooms = await roomService.getAllRooms();
-    const availableRooms = rooms.filter(room => room.status === 'AVAILABLE');
-    res.json(availableRooms);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Update room when tenant is assigned
-adminRouter.patch('/rooms/:id/assign-tenant', async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { tenantId } = req.body;
-    
-    const updatedRoom = await roomService.updateRoom(id, {
-      status: 'OCCUPIED',
-      tenantId: tenantId
-    });
-    
-    if (!updatedRoom) {
-      return res.status(404).json({ error: 'Room not found' });
-    }
-    
-    return res.json(updatedRoom);
-  } catch (error) {
-    return next(error);
-  }
-});
+//not fixed yet - implemented above old code
+// adminRouter.get('/available-rooms', async (req, res, next) => {
+//   try {
+//     const rooms = await roomService.getAllRooms();
+//     const availableRooms = rooms.filter(room => room.status === 'AVAILABLE');
+//     res.json(availableRooms);
+//   } catch (error) {
+//     next(error);
+//   }
+// });

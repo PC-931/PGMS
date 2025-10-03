@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
 import { tenantRouter } from './routes/tenant';
+import { reportsRouter } from './routes/reports';
 
 dotenv.config();
 
@@ -24,9 +25,9 @@ const limiter = rateLimit({
 app.use(helmet());
 app.use(limiter);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
-  optionsSuccessStatus: 200
+  //optionsSuccessStatus: 200
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -41,6 +42,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/tenant', tenantRouter);
+app.use('/api/admin/reports', reportsRouter);
 
 // Error handling
 app.use(errorHandler);

@@ -32,9 +32,12 @@ authRouter.post('/login', async (req, res, next) => {
     // Set cookie options based on rememberMe
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      //secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000 // 7 days or 1 day
+      secure: false,
+      //sameSite: 'none' as const
+      //maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000 // 7 days or 1 day
+      maxAge: 1000 * 60 * 60 * 24 * 7
     };
 
     res.cookie('token', token, cookieOptions);

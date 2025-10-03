@@ -19,9 +19,44 @@ export interface Room {
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
   floor: number;
   amenities: string[];
-  tenantId?: string;
+  // tenantId?: string;
   createdAt: Date;
   updatedAt: Date;
+
+  // Occupancy tracking
+  maxOccupancy: number;
+  currentOccupancy: number;
+  availableSpots: number;
+  isFullyOccupied: boolean;
+  
+  // Relations
+  tenants?: TenantSummary[];
+  tenant?: TenantSummary; // For backward compatibility
+}
+
+export interface TenantSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface TenantWithRooms extends User {
+  rooms: RoomSummary[];
+  _count?: {
+    payments: number;
+    maintenanceRequests: number;
+  };
+}
+
+export interface RoomSummary {
+  id: string;
+  number: string;
+  type: string;
+  floor: number;
+  rent?: number;
+  status?: string;
 }
 
 export interface Payment {
@@ -53,6 +88,80 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: 'ADMIN' | 'TENANT';
+}
+
+
+// Occupancy Statistics
+export interface OccupancyStats {
+  totalRooms: number;
+  totalCapacity: number;
+  totalOccupied: number;
+  availableSpots: number;
+  occupancyRate: number;
+  roomsByStatus: {
+    available: number;
+    partiallyOccupied: number;
+    fullyOccupied: number;
+    maintenance: number;
+  };
+}
+
+export interface TenantStats {
+  totalTenants: number;
+  assignedTenants: number;
+  unassignedTenants: number;
+  assignmentRate: number;
+}
+
+export interface DashboardStats {
+  rooms: {
+    total: number;
+    available: number;
+    occupied: number;
+    maintenance: number;
+  };
+  tenants: TenantStats;
+  occupancy: OccupancyStats;
+  revenue: {
+    monthly: number;
+    pending: number;
+    collected: number;
+  };
+  maintenance: {
+    pending: number;
+    inProgress: number;
+    completed: number;
+  };
+}
+
+// API Response Types
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+// Room Assignment Types
+export interface RoomAssignmentRequest {
+  tenantId: string;
+  roomId: string;
+}
+
+export interface RoomAssignmentResponse {
+  message: string;
+  room: Room;
+  tenant: TenantSummary;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export interface ReportConfig {

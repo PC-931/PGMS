@@ -55,7 +55,13 @@ export class DashboardService {
     const [room, payments, maintenanceRequests] = await Promise.all([
       // Tenant's room
       prisma.room.findFirst({
-        where: { tenantId },
+        where: {
+          tenants: {
+            some: {
+              id: tenantId
+            }
+          }
+        },
         include: {
           payments: {
             where: { status: PaymentStatus.PENDING },
