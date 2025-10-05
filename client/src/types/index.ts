@@ -28,62 +28,37 @@ export interface RegisterData {
   role?: 'ADMIN' | 'TENANT'
 }
 
-// export interface Room {
-//   id: string
-//   type: 'Single' | 'Double' | 'Triple' | 'Four'
-//   capacity: number
-//   occupancy: number
-//   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTAINANCE'
-//   rent: number
-//   createdAt: string
-//   updatedAt: string
-// }
-
-// export interface Tenant {
-//   id: string
-//   name: string
-//   email: string
-//   phone: string
-//   roomId: string | null
-//   room?: Room
-//   // status: 'Active' | 'Inactive'
-//   // joinedAt: string
-//   createdAt: string
-//   updatedAt: string
-// }
 export interface Tenant {
-  id: string
-  name: string
-  firstName?: string
-  lastName?: string
-  email: string
-  phone: string
-  roomId?: string | null
-  room?: Room
-  address?: string
-  emergencyContact?: string
-  role?: 'TENANT'
-  status?: 'ACTIVE' | 'INACTIVE'
-  joinedAt?: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  role: 'TENANT';
+  rooms: RoomSummary[];
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    payments: number;
+    maintenanceRequests: number;
+  };
 }
 
+export interface UnassignedTenant {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  createdAt: string;
+}
 
-
-// export interface RentRecord {
-//   id: string
-//   tenantId: string
-//   tenant?: Tenant
-//   roomId: string
-//   room?: Room
-//   month: string
-//   amount: number
-//   status: 'Paid' | 'Pending' | 'Overdue'
-//   paidAt?: string
-//   createdAt: string
-//   updatedAt: string
-// }
+export interface TenantStats {
+  totalTenants: number;
+  assignedTenants: number;
+  unassignedTenants: number;
+  assignmentRate: number;
+}
 
 export interface User {
   id: string
@@ -115,40 +90,100 @@ export interface RegisterData {
   role?: 'ADMIN' | 'TENANT'
 }
 
+// Room related types
 export interface Room {
-  id: string
-  number: string // Room number (e.g., "101", "A-201")
-  type: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR'
-  capacity: number
-  occupancy?: number
-  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'
-  rent: number
-  deposit?: number
-  floor?: number
-  amenities?: string[]
-  description?: string
-  tenantId?: string
-  tenant?: Tenant
-  createdAt: string
-  updatedAt: string
+  id: string;
+  number: string;
+  type: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR';
+  rent: number;
+  deposit: number;
+  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
+  floor: number;
+  amenities: string[];
+  
+  // Occupancy tracking
+  maxOccupancy: number;
+  currentOccupancy: number;
+  availableSpots: number;
+  isFullyOccupied: boolean;
+  
+  // Relations
+  tenants?: TenantSummary[];
+  
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface Tenant {
-  id: string
-  name: string
-  firstName?: string
-  lastName?: string
-  email: string
-  phone: string
-  roomId?: string | null
-  room?: Room
-  address?: string
-  emergencyContact?: string
-  role?: 'TENANT'
-  status?: 'ACTIVE' | 'INACTIVE'
-  joinedAt?: string
-  createdAt: string
-  updatedAt: string
+export interface Room extends RoomOccupancy {
+  id: string;
+  number: string;
+  type: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR';
+  rent: number;
+  deposit: number;
+  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
+  floor: number;
+  amenities: string[];
+  tenants?: TenantSummary[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OccupancyStats {
+  totalRooms: number;
+  totalCapacity: number;
+  totalOccupied: number;
+  availableSpots: number;
+  occupancyRate: number;
+  roomsByStatus: {
+    available: number;
+    partiallyOccupied: number;
+    fullyOccupied: number;
+    maintenance: number;
+  };
+}
+
+
+// Filter and search types
+export interface RoomFilters {
+  search: string;
+  status: 'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
+  type: 'ALL' | 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR';
+  occupancy: 'ALL' | 'EMPTY' | 'PARTIAL' | 'FULL';
+}
+
+export interface TenantFilters {
+  search: string;
+  status: 'ALL' | 'ASSIGNED' | 'UNASSIGNED';
+  sortBy: 'name' | 'email' | 'rooms' | 'created';
+  sortDirection: 'asc' | 'desc';
+}
+
+// Component prop types
+export interface RoomCardProps {
+  room: Room;
+  onEdit: (room: Room) => void;
+  onDelete: (room: Room) => void;
+  onViewDetails: (room: Room) => void;
+  onAssignTenant: (room: Room) => void;
+  onReleaseTenant: (room: Room, tenant: TenantSummary) => void;
+}
+
+export interface TenantCardProps {
+  tenant: Tenant;
+  onEdit: (tenant: Tenant) => void;
+  onDelete: (tenant: Tenant) => void;
+  onViewDetails: (tenant: Tenant) => void;
+  onAssignRoom: (tenant: Tenant) => void;
+}
+
+
+export interface RoomAssignmentRequest {
+  tenantId: string;
+}
+
+export interface RoomAssignmentResponse {
+  message: string;
+  room: Room;
 }
 
 export interface RentRecord {
@@ -165,73 +200,120 @@ export interface RentRecord {
   updatedAt: string
 }
 
+// Payment and maintenance types (for future use)
 export interface Payment {
-  id: string
-  tenantId: string
-  tenant?: Tenant
-  roomId: string
-  room?: Room
-  amount: number
-  status: 'PAID' | 'PENDING' | 'OVERDUE'
-  month: string
-  dueDate: string
-  paidDate?: string
-  paymentMethod?: string
-  transactionId?: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  amount: number;
+  dueDate: string;
+  paidDate?: string;
+  status: 'PENDING' | 'PAID' | 'OVERDUE';
+  type: 'RENT' | 'DEPOSIT' | 'MAINTENANCE';
+  tenantId: string;
+  roomId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MaintenanceRequest {
-  id: string
-  tenantId: string
-  tenant?: Tenant
-  roomId: string
-  room?: Room
-  title: string
-  description: string
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-  assignedTo?: string
-  completedAt?: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  title: string;
+  description: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  tenantId: string;
+  roomId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// Utility types
+export type RoomType = Room['type'];
+export type RoomStatus = Room['status'];
+export type UserRole = 'ADMIN' | 'TENANT';
 
+// Room type configuration
+export interface RoomTypeConfig {
+  name: string;
+  capacity: number;
+  icon: string;
+  description?: string;
+}
 
-// export interface DashboardStats {
-//   totalRooms: number
-//   occupiedRooms: number
-//   availableRooms: number
-//   totalTenants: number
-//   //activeTenants: number
-//   totalRevenue: number
-//   // pendingRent: number
-//   pendingPayments: number
-//   // maintenanceRooms: number
-//   occupancyRate: number
-// }
+export const ROOM_TYPES: Record<RoomType, RoomTypeConfig> = {
+  SINGLE: {
+    name: 'Single Sharing',
+    capacity: 1,
+    icon: '👤',
+    description: 'Private room for one person'
+  },
+  DOUBLE: {
+    name: 'Double Sharing',
+    capacity: 2,
+    icon: '👥',
+    description: 'Shared room for two people'
+  },
+  TRIPLE: {
+    name: 'Triple Sharing',
+    capacity: 3,
+    icon: '👨‍👩‍👧',
+    description: 'Shared room for three people'
+  },
+  FOUR: {
+    name: 'Four Sharing',
+    capacity: 4,
+    icon: '👨‍👩‍👧‍👦',
+    description: 'Shared room for four people'
+  }
+};
+
 export interface DashboardStats {
-  totalRooms: number
-  occupiedRooms: number
-  availableRooms: number
-  totalTenants: number
-  activeTenants?: number
-  totalRevenue: number
-  monthlyRevenue?: number
-  pendingPayments: number
-  pendingAmount?: number
-  maintenanceRooms?: number
-  occupancyRate: number
-  totalMaintenanceRequests?: number
-  pendingMaintenanceRequests?: number
+  rooms: {
+    total: number;
+    available: number;
+    occupied: number;
+    maintenance: number;
+  };
+  tenants: TenantStats;
+  occupancy: OccupancyStats;
+  revenue: {
+    monthly: number;
+    pending: number;
+    collected: number;
+  };
+  maintenance: {
+    pending: number;
+    inProgress: number;
+    completed: number;
+  };
+}
+
+// Form related types
+export interface RoomFormData {
+  number: string;
+  type: 'SINGLE' | 'DOUBLE' | 'TRIPLE' | 'FOUR';
+  rent: string;
+  deposit: string;
+  floor: string;
+  amenities: string[];
+}
+
+export interface TenantFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
+
+// Modal types
+export interface ModalState {
+  [key: string]: boolean;
 }
 
 
 export interface ApiResponse<T> {
-  success: boolean
-  data: T
+  success?: boolean
+  data?: T
   message?: string
   error?: string
 }
@@ -365,4 +447,28 @@ export interface CreateTenantData {
   roomId: string;
   emergencyContact?: string;
   address?: string;
+}
+
+export interface RoomOccupancy {
+  maxOccupancy: number;
+  currentOccupancy: number;
+  availableSpots: number;
+  isFullyOccupied: boolean;
+}
+
+export interface TenantSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface RoomSummary {
+  id: string;
+  number: string;
+  type: string;
+  floor: number;
+  rent?: number;
+  status?: string;
 }
