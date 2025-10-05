@@ -1,3 +1,6 @@
+// Save this as: client/src/components/RoomManagement.tsx
+// This component now includes full "Add Room" functionality
+
 import React, { useState, useEffect } from 'react';
 import { roomService } from '../services/roomService';
 import { tenantService } from '../services/tenantService';
@@ -6,34 +9,14 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { 
-  Plus, 
-  Search, 
-  Edit3, 
-  Trash2, 
-  User, 
-  Users,
-  Building,
-  DollarSign,
-  Eye,
-  X,
-  UserPlus,
-  UserMinus,
-  AlertCircle,
-  CheckCircle,
-  Clock
+  Plus, Search, Trash2, User, Users, Building, DollarSign,
+  Eye, X, UserPlus, UserMinus, AlertCircle, CheckCircle, Clock
 } from 'lucide-react';
 
-// Modal Component
+// Reusable Modal Component
 const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
   if (!isOpen) return null;
-
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl'
-  };
-
+  const sizeClasses = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
@@ -50,7 +33,368 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
   );
 };
 
-// Room Details Modal
+// Add Room Modal - NEW FUNCTIONALITY
+const AddRoomModal = ({ isOpen, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    number: '', type: 'SINGLE', rent: '', deposit: '', floor: '', amenities: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+
+  const roomTypes = [
+    { value: 'SINGLE', label: 'Single Sharing', capacity: 1 },
+    { value: 'DOUBLE', label: 'Double Sharing', capacity: 2 },
+    { value: 'TRIPLE', label: 'Triple Sharing', capacity: 3 },
+    { value: 'FOUR', label: 'Four Sharing', capacity: 4 }
+  ];
+
+  const commonAmenities = [
+    'Wi-Fi', 'AC', 'Attached Bathroom', 'Balcony', 
+    'Wardrobe', 'Study Table', 'TV', 'Geyser'
+  ];
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ number: '', type: 'SINGLE', rent: '', deposit: '', floor: '', amenities: '' });
+      setSelectedAmenities([]);
+      setErrors({});
+    }
+  }, [isOpen]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.number.trim()) newErrors.number = 'Room number is required';
+    if (!formData.rent || parseFloat(formData.rent) <= 0) newErrors.rent = 'Valid rent amount is required';
+    if (!formData.deposit || parseFloat(formData.deposit) < 0) newErrors.deposit = 'Valid deposit amount is required';
+    if (!formData.floor || parseInt(formData.floor) < 0) newErrors.floor = 'Valid floor number is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const toggleAmenity = (amenity) => {
+    setSelectedAmenities(prev => 
+      prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const roomData = {
+        number: formData.number.trim(),
+        type: formData.type,
+        rent: parseFloat(formData.rent),
+        deposit: parseFloat(formData.deposit),
+        floor: parseInt(formData.floor),
+        amenities: selectedAmenities.length > 0 
+          ? selectedAmenities 
+          : (formData.amenities.trim() 
+              ? formData.amenities.split(',').map(a => a.trim()).filter(a => a) 
+              : [])
+      };
+
+      await roomService.createRoom(roomData);
+      alert('Room added successfully!');
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error creating room:', error);
+      alert(error.response?.data?.error 
+        ? `Error: ${error.response.data.error}` 
+        : 'Failed to create room. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Add New Room" size="lg">
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Room Number <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              name="number"
+              value={formData.number}
+              onChange={handleInputChange}
+              placeholder="e.g., 101, A-201"
+              className={errors.number ? 'border-red-500' : ''}
+            />
+            {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Room Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+            >
+              {roomTypes.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label} (Max: {type.capacity})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Monthly Rent (₹) <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              name="rent"
+              value={formData.rent}
+              onChange={handleInputChange}
+              placeholder="e.g., 8000"
+              min="0"
+              step="100"
+              className={errors.rent ? 'border-red-500' : ''}
+            />
+            {errors.rent && <p className="text-red-500 text-xs mt-1">{errors.rent}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Deposit (₹) <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              name="deposit"
+              value={formData.deposit}
+              onChange={handleInputChange}
+              placeholder="e.g., 5000"
+              min="0"
+              step="100"
+              className={errors.deposit ? 'border-red-500' : ''}
+            />
+            {errors.deposit && <p className="text-red-500 text-xs mt-1">{errors.deposit}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Floor Number <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              name="floor"
+              value={formData.floor}
+              onChange={handleInputChange}
+              placeholder="e.g., 1"
+              min="0"
+              className={errors.floor ? 'border-red-500' : ''}
+            />
+            {errors.floor && <p className="text-red-500 text-xs mt-1">{errors.floor}</p>}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">Amenities</label>
+          <div className="grid grid-cols-2 gap-3">
+            {commonAmenities.map(amenity => (
+              <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedAmenities.includes(amenity)}
+                  onChange={() => toggleAmenity(amenity)}
+                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-gray-700">{amenity}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Additional Amenities (comma-separated)
+          </label>
+          <Input
+            type="text"
+            name="amenities"
+            value={formData.amenities}
+            onChange={handleInputChange}
+            placeholder="e.g., Mini Fridge, Microwave"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Add custom amenities separated by commas
+          </p>
+        </div>
+
+        <div className="bg-indigo-50 p-4 rounded-lg">
+          <h4 className="font-medium text-indigo-900 mb-2">Summary</h4>
+          <div className="text-sm text-indigo-700 space-y-1">
+            <p><strong>Room:</strong> {formData.number || 'N/A'}</p>
+            <p><strong>Type:</strong> {roomTypes.find(t => t.value === formData.type)?.label}</p>
+            <p><strong>Rent:</strong> ₹{formData.rent || '0'}/month</p>
+            <p><strong>Deposit:</strong> ₹{formData.deposit || '0'}</p>
+            <p><strong>Floor:</strong> {formData.floor || 'N/A'}</p>
+            {selectedAmenities.length > 0 && (
+              <p><strong>Amenities:</strong> {selectedAmenities.join(', ')}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4 border-t">
+          <Button type="button" onClick={onClose} variant="outline" disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700" disabled={loading}>
+            {loading ? (
+              <>
+                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Room
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+// Delete Room Confirmation Modal - NEW
+const DeleteRoomModal = ({ isOpen, onClose, room, onSuccess }) => {
+  const [loading, setLoading] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setConfirmText('');
+    }
+  }, [isOpen]);
+
+  const handleDelete = async () => {
+    if (!room) return;
+
+    setLoading(true);
+    try {
+      await roomService.deleteRoom(room.id);
+      alert('Room deleted successfully!');
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error deleting room:', error);
+      alert(error.response?.data?.error 
+        ? `Error: ${error.response.data.error}` 
+        : 'Failed to delete room. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!room) return null;
+
+  const canDelete = room.currentOccupancy === 0;
+  const isConfirmed = confirmText.toUpperCase() === 'DELETE';
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Delete Room" size="md">
+      <div className="p-6 space-y-4">
+        <div className={`p-4 rounded-lg ${canDelete ? 'bg-yellow-50' : 'bg-red-50'}`}>
+          <div className="flex items-start">
+            <AlertCircle className={`h-5 w-5 ${canDelete ? 'text-yellow-600' : 'text-red-600'} mt-0.5 mr-3`} />
+            <div>
+              <h4 className={`font-medium ${canDelete ? 'text-yellow-900' : 'text-red-900'}`}>
+                {canDelete ? 'Warning' : 'Cannot Delete Room'}
+              </h4>
+              <p className={`text-sm mt-1 ${canDelete ? 'text-yellow-700' : 'text-red-700'}`}>
+                {canDelete 
+                  ? 'This action cannot be undone. This will permanently delete the room and all associated data.'
+                  : `This room cannot be deleted because it currently has ${room.currentOccupancy} tenant(s) assigned. Please release all tenants before deleting the room.`
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-900 mb-2">Room Details</h4>
+          <div className="text-sm text-gray-700 space-y-1">
+            <p><strong>Room Number:</strong> {room.number}</p>
+            <p><strong>Type:</strong> {room.type}</p>
+            <p><strong>Floor:</strong> {room.floor}</p>
+            <p><strong>Current Occupancy:</strong> {room.currentOccupancy}/{room.maxOccupancy}</p>
+            <p><strong>Status:</strong> {room.status}</p>
+          </div>
+        </div>
+
+        {canDelete && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type <span className="font-bold">DELETE</span> to confirm
+            </label>
+            <Input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="Type DELETE to confirm"
+              className="uppercase"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              This confirmation is required to prevent accidental deletions
+            </p>
+          </div>
+        )}
+
+        <div className="flex justify-end space-x-3 pt-4 border-t">
+          <Button onClick={onClose} variant="outline" disabled={loading}>
+            Cancel
+          </Button>
+          {canDelete && (
+            <Button 
+              onClick={handleDelete}
+              disabled={!isConfirmed || loading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {loading ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Room
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// Room Details Modal (existing)
 const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTenant }) => {
   if (!room) return null;
 
@@ -69,14 +413,12 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Room ${room.number} Details`} size="lg">
       <div className="p-6 space-y-6">
-        {/* Room Basic Info */}
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
               <p className="text-lg font-semibold text-gray-900">{room.number}</p>
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <div className="flex items-center space-x-2">
@@ -84,7 +426,6 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
                 <Badge variant="secondary" className="text-sm">{typeInfo.name}</Badge>
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Floor</label>
               <p className="text-gray-900">Floor {room.floor}</p>
@@ -102,12 +443,10 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
                 {room.status}
               </Badge>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent</label>
               <p className="text-lg font-semibold text-green-600">₹{room.rent.toLocaleString()}</p>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Deposit</label>
               <p className="text-gray-900">₹{room.deposit.toLocaleString()}</p>
@@ -115,7 +454,6 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
           </div>
         </div>
 
-        {/* Occupancy Information */}
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-3">Occupancy Information</h4>
           <div className="grid grid-cols-3 gap-4">
@@ -143,7 +481,6 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
           </div>
         </div>
 
-        {/* Current Tenants */}
         {room.tenants && room.tenants.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Current Tenants</label>
@@ -170,7 +507,6 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
           </div>
         )}
 
-        {/* Amenities */}
         {room.amenities && room.amenities.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
@@ -184,7 +520,6 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex justify-between pt-4 border-t">
           <div>
             {!room.isFullyOccupied && (
@@ -206,7 +541,7 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
   );
 };
 
-// Assign Tenant Modal
+// Assign Tenant Modal (existing)
 const AssignTenantModal = ({ isOpen, onClose, room, onSuccess }) => {
   const [availableTenants, setAvailableTenants] = useState([]);
   const [selectedTenant, setSelectedTenant] = useState('');
@@ -305,17 +640,16 @@ const RoomManagement = () => {
   const [occupancyStats, setOccupancyStats] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [occupancyFilter, setOccupancyFilter] = useState('ALL');
   
-  // Modal states
   const [modals, setModals] = useState({
     details: false,
     assign: false,
-    delete: false
+    delete: false,
+    addRoom: false  // NEW: Added addRoom modal state
   });
   const [selectedRoom, setSelectedRoom] = useState(null);
 
@@ -406,6 +740,10 @@ const RoomManagement = () => {
     }
   };
 
+  const handleDeleteRoom = (room) => {
+    openModal('delete', room);
+  };
+
   const getOccupancyColor = (currentOccupancy, maxOccupancy) => {
     const percentage = (currentOccupancy / maxOccupancy) * 100;
     if (percentage === 0) return 'text-gray-500';
@@ -443,10 +781,13 @@ const RoomManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Add Room Button */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Room Management</h1>
-        <Button className="bg-indigo-600 hover:bg-indigo-700">
+        <Button 
+          className="bg-indigo-600 hover:bg-indigo-700"
+          onClick={() => openModal('addRoom')}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Room
         </Button>
@@ -675,9 +1016,10 @@ const RoomManagement = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => openModal('delete', room)}
+                          onClick={() => handleDeleteRoom(room)}
                           className="p-1 text-red-600 hover:text-red-700"
                           disabled={room.currentOccupancy > 0}
+                          title={room.currentOccupancy > 0 ? 'Cannot delete room with tenants' : 'Delete room'}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -710,6 +1052,19 @@ const RoomManagement = () => {
       <AssignTenantModal
         isOpen={modals.assign}
         onClose={() => closeModal('assign')}
+        room={selectedRoom}
+        onSuccess={fetchData}
+      />
+
+      <AddRoomModal
+        isOpen={modals.addRoom}
+        onClose={() => closeModal('addRoom')}
+        onSuccess={fetchData}
+      />
+
+      <DeleteRoomModal
+        isOpen={modals.delete}
+        onClose={() => closeModal('delete')}
         room={selectedRoom}
         onSuccess={fetchData}
       />
