@@ -12,9 +12,15 @@ import {
   Plus, Search, Trash2, User, Users, Building, DollarSign,
   Eye, X, UserPlus, UserMinus, AlertCircle, CheckCircle, Clock
 } from 'lucide-react';
+import { Room } from '../types';
 
-// Reusable Modal Component
-const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
+const Modal = ({ isOpen, onClose, children, title, size = 'md' }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  children: React.ReactNode; 
+  title: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+}) => {
   if (!isOpen) return null;
   const sizeClasses = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
   return (
@@ -34,7 +40,11 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
 };
 
 // Add Room Modal - NEW FUNCTIONALITY
-const AddRoomModal = ({ isOpen, onClose, onSuccess }) => {
+const AddRoomModal = ({ isOpen, onClose, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  onSuccess: () => void; 
+}) => {
   const [formData, setFormData] = useState({
     number: '', type: 'SINGLE', rent: '', deposit: '', floor: '', amenities: ''
   });
@@ -282,7 +292,12 @@ const AddRoomModal = ({ isOpen, onClose, onSuccess }) => {
 };
 
 // Delete Room Confirmation Modal - NEW
-const DeleteRoomModal = ({ isOpen, onClose, room, onSuccess }) => {
+const DeleteRoomModal = ({ isOpen, onClose, room, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  room: Room | null;
+  onSuccess: () => void; 
+}) => {
   const [loading, setLoading] = useState(false);
   const [confirmText, setConfirmText] = useState('');
 
@@ -395,7 +410,11 @@ const DeleteRoomModal = ({ isOpen, onClose, room, onSuccess }) => {
 };
 
 // Room Details Modal (existing)
-const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTenant }) => {
+const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTenant }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  room: Room | null;
+}) => {
   if (!room) return null;
 
   const getRoomTypeInfo = (type) => {
@@ -542,7 +561,12 @@ const RoomDetailsModal = ({ isOpen, onClose, room, onAssignTenant, onReleaseTena
 };
 
 // Assign Tenant Modal (existing)
-const AssignTenantModal = ({ isOpen, onClose, room, onSuccess }) => {
+const AssignTenantModal = ({ isOpen, onClose, room, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  room: Room | null;
+  onSuccess: () => void; 
+}) => {
   const [availableTenants, setAvailableTenants] = useState([]);
   const [selectedTenant, setSelectedTenant] = useState('');
   const [loading, setLoading] = useState(false);

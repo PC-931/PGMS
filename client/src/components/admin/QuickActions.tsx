@@ -32,7 +32,11 @@ const Modal = ({ isOpen, onClose, children, title }: {
 };
 
 // Add Room Modal
-const AddRoomModal = ({ isOpen, onClose, onSuccess }) => {
+const AddRoomModal = ({ isOpen, onClose, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  onSuccess: () => void; 
+}) => {
   const [formData, setFormData] = useState({
     number: '',
     type: 'SINGLE',
@@ -178,7 +182,11 @@ const AddRoomModal = ({ isOpen, onClose, onSuccess }) => {
 };
 
 // Register Tenant Modal
-const RegisterTenantModal = ({ isOpen, onClose, onSuccess }) => {
+const RegisterTenantModal = ({ isOpen, onClose, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  onSuccess: () => void; 
+}) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -223,7 +231,9 @@ const RegisterTenantModal = ({ isOpen, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      await tenantService.createTenant(formData);
+      var res = await tenantService.createTenant(formData);
+      console.log('Tenant created:', res);
+      await roomService.assignTenant(formData.roomId, res.id)
       
       setFormData({
         firstName: '',
@@ -305,7 +315,10 @@ const RegisterTenantModal = ({ isOpen, onClose, onSuccess }) => {
 };
 
 // Generate Report Modal
-const GenerateReportModal = ({ isOpen, onClose }) => {
+const GenerateReportModal = ({ isOpen, onClose }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+}) => {
   const [reportConfig, setReportConfig] = useState({
     type: 'monthly_revenue',
     period: 'current_month',
