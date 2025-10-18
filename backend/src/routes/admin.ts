@@ -13,16 +13,6 @@ export const adminRouter = Router();
 adminRouter.use(authenticate);
 adminRouter.use(requireRole(['ADMIN']));
 
-// Dashboard stats
-// adminRouter.get('/dashboard/stats', async (req, res, next) => {
-//   try {
-//     const stats = await dashboardService.getAdminStats();
-//     res.json(stats);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-// Dashboard stats with occupancy information
 adminRouter.get('/dashboard/stats', async (req, res, next) => {
   try {
     const [dashboardStats, occupancyStats] = await Promise.all([
@@ -94,24 +84,6 @@ adminRouter.post('/rooms', async (req, res, next) => {
   }
 });
 
-// adminRouter.put('/rooms/:id', async (req, res, next) => {
-//   try {
-//     // validate incoming body against schema
-//     const roomData = createRoomSchema.partial().parse(req.body); // ✅ partial for update
-
-//     const { id } = req.params;
-
-//     const room = await roomService.updateRoom(id, {
-//       ...roomData,
-//       // status: roomData.status ?? 'AVAILABLE',
-//       // amenities: roomData.amenities ?? []
-//     });
-
-//     res.status(200).json(room); // ✅ use 200 for update
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 adminRouter.put('/rooms/:id', async (req, res, next) => {
   try {
     const roomData = createRoomSchema.partial().parse(req.body);
@@ -148,21 +120,6 @@ adminRouter.get('/rooms/:id', async (req, res, next) => {
   }
 });
 
-// adminRouter.get('/rooms/available', async (req, res, next) => {
-//   try {
-//     const room = await roomService.getAllRooms();
-//     if (!room) {
-//       return res.status(404).json({ error: 'Room not found' });
-//     }else{
-//       const availableRooms = room.filter(r => r.status === 'AVAILABLE');
-//       return res.json(availableRooms);
-//     }
-//     return res.json(room);
-//   } catch (error) {
-//     return next(error);
-//   }
-// });
-// Get available rooms (with available spots)
 adminRouter.get('/rooms/available', async (req, res, next) => {
   try {
     const availableRooms = await roomService.getAvailableRooms();
@@ -218,16 +175,21 @@ adminRouter.get('/rooms/stats/occupancy', async (req, res, next) => {
 });
 
 // Tenant management
-adminRouter.get('/tenants', async (req, res, next) => {
+adminRouter.get('/tenants', async (req: AuthRequest, res, next) => {
   try {
-    const users = await userService.getAllTenants();
-    res.json(users);
+    const tenants = await userService.getAllTenants();
+    res.json(tenants);
   } catch (error) {
     next(error);
   }
 });
 
-adminRouter.post('/tenants', async (req, res, next) => {
+/**
+ * POST /admin/tenants
+ * Create a new tenant
+ * Body: { email, password, firstName, lastName, phone?, role }
+ */
+adminRouter.post('/tenants', async (req: AuthRequest, res, next) => {
   try {
     const userData = createUserSchema.parse(req.body);
     const hashedPassword = await hashPassword(userData.password);
@@ -246,11 +208,90 @@ adminRouter.post('/tenants', async (req, res, next) => {
   }
 });
 
-// Get unassigned tenants (for room assignment)
-adminRouter.get('/tenants/unassigned', async (req, res, next) => {
+/**
+ * GET /admin/tenants/unassigned
+ * Get tenants not assigned to any room
+ */
+adminRouter.get('/tenants/unassigned', async (req: AuthRequest, res, next) => {
   try {
     const unassignedTenants = await userService.getUnassignedTenants();
-    res.json(unassignedTenants);
+    return res.json(unassignedTenants);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * GET /admin/tenants/:id
+ * Get tenant by ID with detailed information
+ */
+adminRouter.get('/tenants/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    const tenant = await userService.getTenantWithRooms(id);
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+
+    return res.json(tenant);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * PUT /admin/tenants/:id
+ * Update tenant information
+ * Body: { firstName?, lastName?, email?, phone? }
+ */
+adminRouter.put('/tenants/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, phone } = req.body;
+
+    // Validate at least one field is provided
+    if (!firstName && !lastName && !email && !phone) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const updateData: any = {};
+    if (firstName) updateData.firstName = firstName.trim();
+    if (lastName) updateData.lastName = lastName.trim();
+    if (email) updateData.email = email.trim();
+    if (phone) updateData.phone = phone.trim();
+
+    const tenant = await userService.updateTenant(id, updateData);
+    return res.json(tenant);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * DELETE /admin/tenants/:id
+ * Delete a tenant (only if not assigned to any room)
+ */
+adminRouter.delete('/tenants/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    await userService.deleteTenant(id);
+    
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /admin/tenants/stats/overview
+ * Get tenant statistics
+ */
+adminRouter.get('/tenants/stats/overview', async (req: AuthRequest, res, next) => {
+  try {
+    const stats = await userService.getTenantStats();
+    res.json(stats);
   } catch (error) {
     next(error);
   }
@@ -286,13 +327,3 @@ adminRouter.patch('/maintenance/:id', async (req, res, next) => {
   }
 });
 
-//not fixed yet - implemented above old code
-// adminRouter.get('/available-rooms', async (req, res, next) => {
-//   try {
-//     const rooms = await roomService.getAllRooms();
-//     const availableRooms = rooms.filter(room => room.status === 'AVAILABLE');
-//     res.json(availableRooms);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
