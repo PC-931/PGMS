@@ -232,7 +232,6 @@ const RegisterTenantModal = ({ isOpen, onClose, onSuccess }: {
     setLoading(true);
     try {
       var res = await tenantService.createTenant(formData);
-      console.log('Tenant created:', res);
       await roomService.assignTenant(formData.roomId, res.id)
       
       setFormData({

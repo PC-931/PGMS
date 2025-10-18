@@ -23,21 +23,6 @@ const PublicRoutes: React.FC = () => {
   )
 }
 
-// Admin routes
-// const AdminRoutes: React.FC = () => {
-//   return (
-//     <DashboardLayout>
-//       <Routes>
-//         <Route path="/admin" element={<AdminDashboard />} />
-//         <Route path="/admin/rooms" element={<RoomManagement />} />
-//         <Route path="/admin/tenants" element={<TenantManagement />} />
-//         <Route path="/admin/rent" element={<div>Rent Management (Coming Soon)</div>} />
-//         <Route path="/admin/settings" element={<div>Settings (Coming Soon)</div>} />
-//         <Route path="*" element={<Navigate to="/admin" replace />} />
-//       </Routes>
-//     </DashboardLayout>
-//   )
-// }
 const AdminRoutes: React.FC = () => {
   return (
     <DashboardLayout>
@@ -46,6 +31,7 @@ const AdminRoutes: React.FC = () => {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/rooms" element={<RoomManagement />} />
         <Route path="/admin/tenants" element={<TenantManagement />} />
+        <Route path="/admin/rent" element={<div>Rent Management (Coming Soon)</div>} />
         <Route path="/admin/payments" element={<div>Payment Management (Coming Soon)</div>} />
         <Route path="/admin/maintenance" element={<div>Maintenance Management (Coming Soon)</div>} />
         <Route path="/admin/reports" element={<div>Reports (Coming Soon)</div>} />
