@@ -21,6 +21,7 @@ model User {
 
   // Relations - Many-to-many with Room
   rooms               Room[]               @relation("RoomTenants")
+  rents               Rent[]
   payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 
@@ -41,10 +42,57 @@ model Room {
 
   // Relations - Many-to-many with User
   tenants             User[]               @relation("RoomTenants")
+  rents               Rent[]
   payments           Payment[]
   maintenanceRequests MaintenanceRequest[]
 
   @@map("rooms")
+}
+
+model Rent {
+  id           String     @id @default(uuid())
+  tenantId     String     @map("tenant_id")
+  roomId       String     @map("room_id")
+  amount       Decimal    @db.Decimal(10, 2)
+  periodStart  DateTime   @map("period_start")
+  periodEnd    DateTime   @map("period_end")
+  dueDate      DateTime   @map("due_date")
+  status       RentStatus @default(PENDING)
+  paidAmount   Decimal    @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  notes        String?
+  createdBy    String?    @map("created_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  isDeleted    Boolean    @default(false) @map("is_deleted")
+
+  // Relations
+  tenant       User            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  room         Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  rentPayments RentPayment[]
+
+  @@index([tenantId])
+  @@index([roomId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("rents")
+}
+
+model RentPayment {
+  id          String   @id @default(uuid())
+  rentId      String   @map("rent_id")
+  amount      Decimal  @db.Decimal(10, 2)
+  paidAt      DateTime @map("paid_at")
+  method      String
+  reference   String?
+  notes       String?
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  rent        Rent     @relation(fields: [rentId], references: [id], onDelete: Cascade)
+
+  @@index([rentId])
+  @@map("rent_payments")
 }
 
 model Payment {
@@ -117,4 +165,11 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum RentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
 }

@@ -9,6 +9,8 @@ import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
 import { tenantRouter } from './routes/tenant';
 import { reportsRouter } from './routes/reports';
+import { rentRouter } from './routes/rent';
+
 
 dotenv.config();
 
@@ -43,6 +45,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/tenant', tenantRouter);
 app.use('/api/admin/reports', reportsRouter);
+app.use('/api/admin/rents', rentRouter);
+
 
 // Error handling
 app.use(errorHandler);
